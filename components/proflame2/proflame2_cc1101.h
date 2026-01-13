@@ -278,5 +278,17 @@ class ProFlame2SecondaryFlameSwitch : public switch_::Switch, public Component {
   ProFlame2Component *parent_;
 };
 
+class ProFlame2ThermostatSwitch : public switch_::Switch, public Component {
+ public:
+  void set_parent(ProFlame2Component *parent) { this->parent_ = parent; }
+  void write_state(bool state) override {
+    this->parent_->set_thermostat(state);
+    this->publish_state(state);
+  }
+
+ protected:
+  ProFlame2Component *parent_;
+};
+
 }  // namespace proflame2
 }  // namespace esphome
