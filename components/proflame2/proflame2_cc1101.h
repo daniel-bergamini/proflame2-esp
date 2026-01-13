@@ -143,7 +143,7 @@ class ProFlame2Component : public Component,
   void reset_cc1101();
   void configure_cc1101();
 
-  uint8_t calculate_checksum(uint8_t cmd_byte, uint8_t c_const, uint8_t d_const);
+  uint8_t calculate_checksum(uint8_t cmd_byte, uint8_t init);
   uint8_t calculate_parity(uint16_t data);
 
   // Non-blocking TX state machine

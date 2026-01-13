@@ -213,16 +213,14 @@ uint8_t ProFlame2Component::calculate_parity(uint16_t data) {
   return ones & 1;
 }
 
-uint8_t ProFlame2Component::calculate_checksum(uint8_t cmd_byte, uint8_t c_const,
-                                               uint8_t d_const) {
-  uint8_t high_nibble = (cmd_byte >> 4) & 0x0F;
-  uint8_t low_nibble = cmd_byte & 0x0F;
-
-  uint8_t x = (c_const ^ (high_nibble << 1) ^ high_nibble ^ (low_nibble << 1)) &
-              0x0F;
-  uint8_t y = (d_const ^ high_nibble ^ low_nibble) & 0x0F;
-
-  return (x << 4) | y;
+uint8_t ProFlame2Component::calculate_checksum(uint8_t cmd_byte, uint8_t init) {
+  // Proflame2 checksum transform (rtl_433 Err1/Err2).
+  uint8_t high = cmd_byte & 0xF0;
+  uint8_t low = cmd_byte & 0x0F;
+  uint8_t checksum = init ^ static_cast<uint8_t>((high << 1) & 0xFF) ^ high ^
+                     static_cast<uint8_t>(high >> 4) ^ low ^
+                     static_cast<uint8_t>((low << 5) & 0xFF);
+  return checksum;
 }
 
 void ProFlame2Component::build_packet(uint8_t *packet) {
@@ -242,15 +240,27 @@ void ProFlame2Component::build_packet(uint8_t *packet) {
                  (this->current_state_.aux_power ? 0x08 : 0x00) |
                  (this->current_state_.flame_level & 0x07);
 
-  // uint8_t checksum1 = this->calculate_checksum(cmd1, 0x0D, 0x00);
-  // uint8_t checksum2 = this->calculate_checksum(cmd2, 0x00, 0x07);
-  // ECC tuned from real remote captures:
-  //   cmd1=0x01 -> err1=0x73
-  //   cmd2=0x31 -> err2=0x36
-  //   cmd2=0x21 -> err2=0x07
-  // These map to (c,d) = (0x05,0x02) for cmd1, (0x04,0x04) for cmd2.
-  uint8_t checksum1 = this->calculate_checksum(cmd1, 0x05, 0x02);
-  uint8_t checksum2 = this->calculate_checksum(cmd2, 0x04, 0x04);
+  // Err1/Err2 are derived from independent checksum seeds.
+  uint8_t checksum1 = this->calculate_checksum(cmd1, 0x50);
+  uint8_t checksum2 = this->calculate_checksum(cmd2, 0xED);
+
+#if defined(PROFLAME2_SELFTEST)
+  static bool selftest_ran = false;
+  if (!selftest_ran) {
+    selftest_ran = true;
+    const uint8_t test_id0 = 0xC1;
+    const uint8_t test_id1 = 0xFA;
+    const uint8_t test_id2 = 0x02;
+    const uint8_t test_cmd1 = 0x81;
+    const uint8_t test_cmd2 = 0x46;
+    const uint8_t test_err1 = this->calculate_checksum(test_cmd1, 0x50);
+    const uint8_t test_err2 = this->calculate_checksum(test_cmd2, 0xED);
+    ESP_LOGI(TAG,
+             "SELFTEST bytes: %02X %02X %02X %02X %02X %02X %02X",
+             test_id0, test_id1, test_id2, test_cmd1, test_cmd2, test_err1,
+             test_err2);
+  }
+#endif
 
   ESP_LOGI(TAG,
            "CMD summary: serial bytes=%02X %02X %02X cmd1=0x%02X cmd2=0x%02X "
