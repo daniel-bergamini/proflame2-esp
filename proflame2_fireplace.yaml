@@ -65,6 +65,11 @@ proflame2:
     icon: "mdi:fire"
     entity_category: config
 
+  thermostat:
+    name: "Thermostat"
+    icon: "mdi:thermostat"
+    entity_category: config
+
   aux:
     name: "Aux Power"
     icon: "mdi:power-plug"
