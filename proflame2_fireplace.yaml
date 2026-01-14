@@ -68,6 +68,15 @@ proflame2:
   thermostat:
     name: "Thermostat"
     icon: "mdi:thermostat"
+
+  transmit_enabled:
+    name: "Transmit Enabled"
+    icon: "mdi:transmission-tower"
+    entity_category: config
+
+  resend:
+    name: "Resend State"
+    icon: "mdi:send"
     entity_category: config
 
   aux:

@@ -70,6 +70,10 @@ void ProFlame2Component::setup() {
       .aux_power = false,
       .flame_level = 0};
 
+  if (this->transmit_switch_ != nullptr) {
+    this->transmit_switch_->publish_state(this->transmit_enabled_);
+  }
+
   ESP_LOGCONFIG(TAG, "ProFlame 2 setup complete");
 }
 
@@ -345,6 +349,10 @@ void ProFlame2Component::encode_manchester(uint8_t *input, uint8_t *output,
 }
 
 void ProFlame2Component::transmit_command() {
+  if (!this->transmit_enabled_) {
+    ESP_LOGD(TAG, "Transmit disabled, skipping transmission");
+    return;
+  }
   if (!this->spi_ready_) {
     ESP_LOGE(TAG, "SPI not ready, skipping transmission");
     return;
@@ -656,6 +664,30 @@ void ProFlame2Component::set_thermostat(bool state) {
     }
     ESP_LOGI(TAG, "Thermostat set to %s", state ? "ON" : "OFF");
   }
+}
+
+void ProFlame2Component::set_transmit_enabled(bool enabled) {
+  if (this->transmit_enabled_ != enabled) {
+    this->transmit_enabled_ = enabled;
+    if (enabled) {
+      ESP_LOGI(TAG, "Transmit enabled, sending current state");
+      this->transmit_command();
+    } else {
+      ESP_LOGI(TAG, "Transmit disabled");
+    }
+    if (this->transmit_switch_) {
+      this->transmit_switch_->publish_state(enabled);
+    }
+  }
+}
+
+void ProFlame2Component::resend_current_state() {
+  if (!this->transmit_enabled_) {
+    ESP_LOGI(TAG, "Transmit disabled, resend ignored");
+    return;
+  }
+  ESP_LOGI(TAG, "Resending current state");
+  this->transmit_command();
 }
 
 // DEBUG FUNCTIONS

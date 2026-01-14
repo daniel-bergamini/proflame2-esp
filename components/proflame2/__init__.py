@@ -1,14 +1,14 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import spi, switch, number
+from esphome.components import spi, switch, number, button
 from esphome.const import (
     CONF_ID,
     CONF_CS_PIN,
 )
 from esphome import pins
 
-DEPENDENCIES = ["spi", "switch", "number", "light", "fan"]
-AUTO_LOAD = ["switch", "number", "light", "fan"]
+DEPENDENCIES = ["spi", "switch", "number", "light", "fan", "button"]
+AUTO_LOAD = ["switch", "number", "light", "fan", "button"]
 
 proflame2_ns = cg.esphome_ns.namespace("proflame2")
 ProFlame2Component = proflame2_ns.class_(
@@ -31,6 +31,13 @@ ProFlame2SecondaryFlameSwitch = proflame2_ns.class_(
 ProFlame2ThermostatSwitch = proflame2_ns.class_(
     "ProFlame2ThermostatSwitch", switch.Switch, cg.Component
 )
+ProFlame2TransmitSwitch = proflame2_ns.class_(
+    "ProFlame2TransmitSwitch", switch.Switch, cg.Component
+)
+
+ProFlame2ResendButton = proflame2_ns.class_(
+    "ProFlame2ResendButton", button.Button, cg.Component
+)
 
 # Number types
 ProFlame2FlameNumber = proflame2_ns.class_(
@@ -50,6 +57,8 @@ CONF_PILOT = "pilot"
 CONF_AUX = "aux"
 CONF_SECONDARY_FLAME = "secondary_flame"
 CONF_THERMOSTAT = "thermostat"
+CONF_TRANSMIT_ENABLED = "transmit_enabled"
+CONF_RESEND = "resend"
 CONF_FLAME = "flame"
 CONF_FAN = "fan"
 CONF_LIGHT = "light"
@@ -65,6 +74,8 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_AUX): switch.switch_schema(ProFlame2AuxSwitch),
         cv.Optional(CONF_SECONDARY_FLAME): switch.switch_schema(ProFlame2SecondaryFlameSwitch),
         cv.Optional(CONF_THERMOSTAT): switch.switch_schema(ProFlame2ThermostatSwitch),
+        cv.Optional(CONF_TRANSMIT_ENABLED): switch.switch_schema(ProFlame2TransmitSwitch),
+        cv.Optional(CONF_RESEND): button.button_schema(ProFlame2ResendButton),
         cv.Optional(CONF_FLAME): number.number_schema(ProFlame2FlameNumber),
         cv.Optional(CONF_FAN): number.number_schema(ProFlame2FanNumber),
         cv.Optional(CONF_LIGHT): number.number_schema(ProFlame2LightNumber),
@@ -129,6 +140,23 @@ async def to_code(config):
         await switch.register_switch(sw, conf)
         cg.add(sw.set_parent(var))
         cg.add(var.set_thermostat_switch(sw))
+
+    # Configure transmit enabled switch
+    if CONF_TRANSMIT_ENABLED in config:
+        conf = config[CONF_TRANSMIT_ENABLED]
+        sw = cg.new_Pvariable(conf[CONF_ID])
+        await cg.register_component(sw, conf)
+        await switch.register_switch(sw, conf)
+        cg.add(sw.set_parent(var))
+        cg.add(var.set_transmit_switch(sw))
+
+    # Configure resend button
+    if CONF_RESEND in config:
+        conf = config[CONF_RESEND]
+        btn = cg.new_Pvariable(conf[CONF_ID])
+        await cg.register_component(btn, conf)
+        await button.register_button(btn, conf)
+        cg.add(btn.set_parent(var))
 
     # Configure flame number
     if CONF_FLAME in config:

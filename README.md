@@ -108,6 +108,21 @@ proflame2:
     icon: "mdi:fire"
     entity_category: config
 
+  thermostat:
+    name: "Thermostat"
+    icon: "mdi:thermostat"
+    entity_category: config
+
+  transmit_enabled:
+    name: "Transmit Enabled"
+    icon: "mdi:transmission-tower"
+    entity_category: config
+
+  resend:
+    name: "Resend State"
+    icon: "mdi:send"
+    entity_category: config
+
   aux:
     name: "Aux Power"
     icon: "mdi:power-plug"
@@ -266,4 +281,3 @@ This project is licensed under the MIT License - see LICENSE file for details.
 ## Disclaimer
 
 This project is not affiliated with, endorsed by, or connected to SIT Group, ProFlame, or any fireplace manufacturers. Use at your own risk. The authors assume no responsibility for damages or injuries resulting from the use of this software.
-

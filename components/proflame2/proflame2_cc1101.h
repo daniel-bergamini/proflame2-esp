@@ -7,6 +7,7 @@
 #include "esphome/components/light/light_output.h"
 #include "esphome/components/fan/fan.h"
 #include "esphome/components/number/number.h"
+#include "esphome/components/button/button.h"
 
 namespace esphome {
 namespace proflame2 {
@@ -107,6 +108,8 @@ class ProFlame2Component : public Component,
   void set_aux_power(bool state);
   void set_secondary_flame(bool state);
   void set_thermostat(bool state);
+  void set_transmit_enabled(bool enabled);
+  void resend_current_state();
 
   // Switch components
   void set_power_switch(switch_::Switch *sw) { this->power_switch_ = sw; }
@@ -117,6 +120,9 @@ class ProFlame2Component : public Component,
   }
   void set_thermostat_switch(switch_::Switch *sw) {
     this->thermostat_switch_ = sw;
+  }
+  void set_transmit_switch(switch_::Switch *sw) {
+    this->transmit_switch_ = sw;
   }
 
   // Number components for levels
@@ -162,12 +168,14 @@ class ProFlame2Component : public Component,
   switch_::Switch *aux_switch_{nullptr};
   switch_::Switch *secondary_flame_switch_{nullptr};
   switch_::Switch *thermostat_switch_{nullptr};
+  switch_::Switch *transmit_switch_{nullptr};
 
   number::Number *flame_number_{nullptr};
   number::Number *fan_number_{nullptr};
   number::Number *light_number_{nullptr};
 
   bool spi_ready_{false};
+  bool transmit_enabled_{true};
 
   // Timing
   uint32_t last_transmission_{0};
@@ -223,6 +231,27 @@ class ProFlame2AuxSwitch : public switch_::Switch, public Component {
   }
 
  protected:
+  ProFlame2Component *parent_;
+};
+
+class ProFlame2TransmitSwitch : public switch_::Switch, public Component {
+ public:
+  void set_parent(ProFlame2Component *parent) { this->parent_ = parent; }
+  void write_state(bool state) override {
+    this->parent_->set_transmit_enabled(state);
+    this->publish_state(state);
+  }
+
+ protected:
+  ProFlame2Component *parent_;
+};
+
+class ProFlame2ResendButton : public button::Button, public Component {
+ public:
+  void set_parent(ProFlame2Component *parent) { this->parent_ = parent; }
+
+ protected:
+  void press_action() override { this->parent_->resend_current_state(); }
   ProFlame2Component *parent_;
 };
 
