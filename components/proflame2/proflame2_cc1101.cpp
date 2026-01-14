@@ -371,10 +371,11 @@ void ProFlame2Component::transmit_command() {
 
   ESP_LOGI(TAG, "=== TRANSMIT DEBUG ===");
   ESP_LOGI(TAG,
-           "State: Power=%d, Pilot=%s, Flame=%d, Fan=%d, Light=%d, Aux=%d, "
-           "Secondary Flame=%d",
+           "State: Power=%d, Pilot=%s, Thermostat=%d, Flame=%d, Fan=%d, "
+           "Light=%d, Aux=%d, Secondary Flame=%d",
            this->current_state_.power,
            this->current_state_.pilot_cpi ? "CPI" : "IPI",
+           this->current_state_.thermostat,
            this->current_state_.flame_level, this->current_state_.fan_level,
            this->current_state_.light_level, this->current_state_.aux_power,
            this->current_state_.secondary_flame);
